@@ -8,7 +8,7 @@ import subprocess
 from tf.transformations import quaternion_about_axis, quaternion_multiply
 import os
 
-from table_extractor.msg import Table
+from edith_msgs.msg import Table
 from mongodb_store.message_store import MessageStoreProxy
 
 from stare_at_tables.msg import StareAtTablesAction
@@ -23,8 +23,14 @@ class StareAtTables:
 		self.whole_body = self.robot.try_get('whole_body')
 		self.msg_store = MessageStoreProxy()
 		self.rosbag_path = rospy.get_param('/stare_at_tables/rosbag_path', '/home/v4r/Markus_L/sasha_lab_bag')
-		self.storage_path = rospy.get_param('/stare_at_tables/storage_path', 'v4r@10.0.0.112:/media/v4r/FF64-D891/tidy_up_pipeline/stare_at_tables')
-		self.topics = rospy.get_param('/stare_at_tables/topics', ['/hsrb/head_rgbd_sensor/rgb/image_raw', '/hsrb/head_rgbd_sensor/depth_registered/image_raw','/tf','/tf_static','/hsrb/head_rgbd_sensor/rgb/camera_info'])
+		if not os.path.exists(self.rosbag_path):
+			os.makedirs(self.rosbag_path)
+		self.storage_path = rospy.get_param('/stare_at_tables/storage_path', 'v4r@rocco:/media/v4r/FF64-D891/tidy_up_pipeline/stare_at_tables')
+		
+		cmd_dir = ['ssh', 'v4r@rocco', 'mkdir -p /media/v4r/FF64-D891/tidy_up_pipeline/stare_at_tables']
+		directory = subprocess.Popen(cmd_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		directory.wait()
+		self.topics = rospy.get_param('/stare_at_tables/topics', ['/hsrb/head_rgbd_sensor/rgb/image_rect_color', '/hsrb/head_rgbd_sensor/depth_registered/image_rect_raw','/tf','/tf_static','/hsrb/head_rgbd_sensor/rgb/camera_info'])
 
 
 	def execute(self, goal):
@@ -69,6 +75,7 @@ class StareAtTables:
 		#cmd_rosbag = ['rosbag', 'record','-b','0','-O', rosbag_filename,'/hsrb/head_rgbd_sensor/rgb/image_raw', '/hsrb/head_rgbd_sensor/depth_registered/image_raw','/tf','/tf_static','/hsrb/head_rgbd_sensor/rgb/camera_info',"__name:=my_bag"]
 		cmd_rosbag = ['rosbag', 'record','-b','0','-O', rosbag_filename]
 		cmd_rosbag.extend(self.topics)
+		print(self.topics)
 		cmd_rosbag.append("__name:=my_bag")
 		rosbagflag = False
 		# move to poses
