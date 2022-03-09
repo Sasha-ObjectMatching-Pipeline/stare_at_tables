@@ -8,7 +8,7 @@ import subprocess
 from tf.transformations import quaternion_about_axis, quaternion_multiply
 import os
 
-from edith_msgs.msg import Table
+from obj_det_ppf_matching_msgs.msg import Table
 from mongodb_store.message_store import MessageStoreProxy
 
 from stare_at_tables.msg import StareAtTablesAction
